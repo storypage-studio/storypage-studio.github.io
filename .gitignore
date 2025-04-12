@@ -1,0 +1,19 @@
+/node_modules
+/.idea
+/.turbo
+/apps/**/node_modules
+
+# IntelliJ Idea
+.idea/
+*.iml
+*.ipr
+debug.log
+.gradle
+target/
+.flattened-pom.xml
+
+# yarn
+.yarn
+
+# eslint
+/packages/eslint-config-custom/node_modules
