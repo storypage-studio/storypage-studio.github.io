@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>웹 드럼 패드 (플로어 탐 사운드 조정됨)</title> <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <title>웹 드럼 패드</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         /* 기본 스타일 */
         body {
@@ -72,14 +73,62 @@
         }
 
         /* --- 개별 드럼/심벌즈 위치 및 크기 조정 --- */
-        #crash { top: 0; left: 5%; width: 28vmin; height: 28vmin; }
-        #hi-hat { top: 35%; left: 0; width: 23vmin; height: 23vmin; }
-        #ride { top: 0; right: 5%; width: 33vmin; height: 33vmin; }
-        #snare { bottom: 28%; left: 18%; width: 25vmin; height: 25vmin; }
-        #tom1 { top: 18%; left: 32%; width: 20vmin; height: 20vmin; }
-        #tom2 { top: 18%; right: 32%; width: 21vmin; height: 21vmin; }
-        #kick { bottom: 0; left: 50%; transform: translateX(-50%); width: 30vmin; height: 30vmin; }
-        #floor-tom { bottom: 20%; right: 12%; width: 27vmin; height: 27vmin; }
+        #crash {
+            top: 0;
+            left: 5%;
+            width: 28vmin;
+            height: 28vmin;
+        }
+
+        #hi-hat {
+            top: 35%;
+            left: 0;
+            width: 23vmin;
+            height: 23vmin;
+        }
+
+        #ride {
+            top: 0;
+            right: 5%;
+            width: 33vmin;
+            height: 33vmin;
+        }
+
+        #snare {
+            bottom: 28%;
+            left: 18%;
+            width: 25vmin;
+            height: 25vmin;
+        }
+
+        #tom1 {
+            top: 18%;
+            left: 32%;
+            width: 20vmin;
+            height: 20vmin;
+        }
+
+        #tom2 {
+            top: 18%;
+            right: 32%;
+            width: 21vmin;
+            height: 21vmin;
+        }
+
+        #kick {
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30vmin;
+            height: 30vmin;
+        }
+
+        #floor-tom {
+            bottom: 20%;
+            right: 12%;
+            width: 27vmin;
+            height: 27vmin;
+        }
 
     </style>
 </head>
@@ -118,37 +167,37 @@
     // 드럼 사운드 정의
     const sounds = {
         'kick': new Tone.MembraneSynth({
-            pitchDecay: 0.04, octaves: 7, oscillator: { type: 'sine' },
-            envelope: { attack: 0.001, decay: 0.5, sustain: 0.01, release: 1.4, attackCurve: 'exponential' }
+            pitchDecay: 0.04, octaves: 7, oscillator: {type: 'sine'},
+            envelope: {attack: 0.001, decay: 0.5, sustain: 0.01, release: 1.4, attackCurve: 'exponential'}
         }).connect(mainVolume),
         'snare': new Tone.NoiseSynth({
-            noise: { type: 'white' },
-            envelope: { attack: 0.005, decay: 0.2, sustain: 0 }
+            noise: {type: 'white'},
+            envelope: {attack: 0.005, decay: 0.2, sustain: 0}
         }).connect(mainVolume),
         'hi-hat': new Tone.MetalSynth({
-            frequency: 200, envelope: { attack: 0.001, decay: 0.1, release: 0.05 },
+            frequency: 200, envelope: {attack: 0.001, decay: 0.1, release: 0.05},
             harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5
         }).connect(mainVolume),
         'crash': new Tone.MetalSynth({
-            frequency: 300, envelope: { attack: 0.001, decay: 1.5, release: 1 },
+            frequency: 300, envelope: {attack: 0.001, decay: 1.5, release: 1},
             harmonicity: 5.1, modulationIndex: 64, resonance: 3000, octaves: 1.5
         }).connect(mainVolume),
         'ride': new Tone.MetalSynth({
-            frequency: 400, envelope: { attack: 0.001, decay: 1.0, release: 0.5 },
+            frequency: 400, envelope: {attack: 0.001, decay: 1.0, release: 0.5},
             harmonicity: 4.1, modulationIndex: 40, resonance: 3500, octaves: 1.2
         }).connect(mainVolume),
         'tom1': new Tone.Synth({
-            oscillator: { type: 'sine' },
-            envelope: { attack: 0.005, decay: 0.4, sustain: 0, release: 0.2 }
+            oscillator: {type: 'sine'},
+            envelope: {attack: 0.005, decay: 0.4, sustain: 0, release: 0.2}
         }).connect(mainVolume),
         'tom2': new Tone.Synth({
-            oscillator: { type: 'sine' },
-            envelope: { attack: 0.005, decay: 0.45, sustain: 0, release: 0.25 }
+            oscillator: {type: 'sine'},
+            envelope: {attack: 0.005, decay: 0.45, sustain: 0, release: 0.25}
         }).connect(mainVolume),
 
         // --- Floor Tom 사운드 변경: MembraneSynth -> Synth ---
         'floor-tom': new Tone.Synth({
-            oscillator: { type: 'sine' }, // Tom 1, 2와 동일한 파형
+            oscillator: {type: 'sine'}, // Tom 1, 2와 동일한 파형
             envelope: {
                 attack: 0.005,
                 decay: 0.6,    // Tom 2보다 더 길게 늘림 (낮은 톤의 울림)
@@ -211,7 +260,7 @@
             }
         };
         pad.addEventListener('mousedown', playSoundHandler);
-        pad.addEventListener('touchstart', playSoundHandler, { passive: false });
+        pad.addEventListener('touchstart', playSoundHandler, {passive: false});
     });
 
     // 페이지 로드 완료 시 메시지
