@@ -3,132 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>웹 드럼 패드</title>
+    <title>드럼 패드</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         /* 기본 스타일 */
-        body {
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
             font-family: 'Inter', sans-serif;
-            background-color: #333; /* 어두운 배경 */
+            background-color: #333;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            overflow: hidden; /* 스크롤 방지 */
-            overscroll-behavior: none; /* 스크롤 당김 효과 방지 */
-            touch-action: manipulation; /* 더블 탭 확대 방지 */
+            overflow: hidden;
+            overscroll-behavior: none;
+            touch-action: manipulation;
         }
 
-        /* 드럼 키트 컨테이너 - 중앙 정렬 역할 */
         .drum-kit-container {
             display: flex;
             justify-content: center;
             align-items: center;
             width: 100%;
             height: 100%;
+            position: relative;
         }
 
-        /* 드럼 키트 영역 - 크기 및 기준점 */
         #drum-kit {
-            position: relative; /* 자식 요소(패드)들의 절대 위치 기준점 */
-            width: 95vmin; /* 화면 크기에 따른 가변 너비 */
-            height: 70vmin; /* 화면 크기에 따른 가변 높이 */
+            position: relative;
+            /* 단일 레이아웃 컨테이너 크기 (vmin 기준) */
+            width: 95vmin;
+            height: 70vmin;
+            max-width: 100%; /* 화면 크기 초과 방지 */
+            max-height: 100%;
         }
 
-        /* 드럼 패드 공통 스타일 */
         .drum-pad {
-            position: absolute; /* #drum-kit 내부에서 절대 위치 */
-            border-radius: 50%; /* 원형 모양 */
+            position: absolute;
+            border-radius: 50%;
             cursor: pointer;
-            user-select: none; /* 텍스트 선택 방지 */
+            user-select: none;
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.2); /* 입체감 효과 */
-            transition: transform 0.05s ease-out, box-shadow 0.05s ease-out; /* 애니메이션 효과 */
-            -webkit-tap-highlight-color: transparent; /* 모바일 터치 시 하이라이트 제거 */
-            font-size: 2vmin; /* 화면 크기에 따른 폰트 크기 */
-            box-sizing: border-box; /* 테두리를 포함하여 크기 계산 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+            transition: transform 0.05s ease-out, box-shadow 0.05s ease-out;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+            /* 단일 레이아웃 폰트 크기 (vmin 기준) */
+            font-size: 2vmin;
         }
 
-        /* 드럼 패드 활성화 (터치/클릭) 시 스타일 */
         .drum-pad.active {
-            transform: scale(0.95); /* 살짝 작아지는 효과 */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(0, 0, 0, 0.3); /* 눌리는 효과 */
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
-        /* 심벌즈 스타일 (노란색/금색 계열) */
         .cymbal {
-            background: radial-gradient(circle, #fde047 /* 밝은 노랑 */, #eab308 /* 진한 노랑 */);
-            border: 0.8vmin solid #a16207; /* 어두운 금색 테두리 */
-            color: #713f12; /* 어두운 갈색 텍스트 */
+            background: radial-gradient(circle, #fde047, #eab308);
+            /* 단일 레이아웃 테두리 두께 (vmin 기준) */
+            border: 0.8vmin solid #a16207;
+            color: #713f12;
         }
 
-        /* 드럼 헤드 스타일 (흰색/회색 계열) */
         .drum-head {
-            background: radial-gradient(circle, #f3f4f6 /* 밝은 회색 */, #d1d5db /* 중간 회색 */);
-            border: 1vmin solid #4b5563; /* 어두운 회색 테두리 */
-            color: #1f2937; /* 매우 어두운 회색 텍스트 */
+            background: radial-gradient(circle, #f3f4f6, #d1d5db);
+            /* 단일 레이아웃 테두리 두께 (vmin 기준) */
+            border: 1vmin solid #4b5563;
+            color: #1f2937;
         }
 
-        /* --- 개별 드럼/심벌즈 위치 및 크기 조정 --- */
+        /* --- 단일 레이아웃 드럼 패드 위치 (%) 및 크기 (vmin 사용 -> 원형 보장) --- */
+        /* 위치 값 (%) */
         #crash {
             top: 0;
             left: 5%;
-            width: 28vmin;
-            height: 28vmin;
         }
 
         #hi-hat {
             top: 35%;
             left: 0;
-            width: 23vmin;
-            height: 23vmin;
         }
 
         #ride {
             top: 0;
             right: 5%;
-            width: 33vmin;
-            height: 33vmin;
         }
 
         #snare {
             bottom: 28%;
             left: 18%;
-            width: 25vmin;
-            height: 25vmin;
         }
 
         #tom1 {
             top: 18%;
             left: 32%;
-            width: 20vmin;
-            height: 20vmin;
         }
 
         #tom2 {
             top: 18%;
             right: 32%;
-            width: 21vmin;
-            height: 21vmin;
         }
 
         #kick {
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 30vmin;
-            height: 30vmin;
         }
 
         #floor-tom {
             bottom: 20%;
             right: 12%;
+        }
+
+        /* 크기 값 (vmin) */
+        #crash {
+            width: 28vmin;
+            height: 28vmin;
+        }
+
+        #hi-hat {
+            width: 23vmin;
+            height: 23vmin;
+        }
+
+        #ride {
+            width: 33vmin;
+            height: 33vmin;
+        }
+
+        #snare {
+            width: 25vmin;
+            height: 25vmin;
+        }
+
+        #tom1 {
+            width: 20vmin;
+            height: 20vmin;
+        }
+
+        #tom2 {
+            width: 21vmin;
+            height: 21vmin;
+        }
+
+        #kick {
+            width: 30vmin;
+            height: 30vmin;
+        }
+
+        #floor-tom {
             width: 27vmin;
             height: 27vmin;
         }
+
+        /* ---------------------------------------------------------------------- */
+
+        /* 미디어 쿼리 제거됨 */
+
+        /* --- 전체 화면 버튼 스타일 개선 --- */
+        #fullscreen-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 44px;
+            height: 44px;
+            background: radial-gradient(circle, #6b7280, #4b5563);
+            border: 2px solid #374151;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+
+        #fullscreen-btn:hover {
+            background: radial-gradient(circle, #808892, #5c6672);
+        }
+
+        #fullscreen-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        #fullscreen-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #f3f4f6;
+        }
+
+        .exit-fullscreen-icon {
+            display: none;
+        }
+
+        /* -------------------------- */
 
     </style>
 </head>
@@ -144,10 +218,18 @@
         <div id="kick" class="drum-pad drum-head" data-sound="kick">Kick</div>
         <div id="floor-tom" class="drum-pad drum-head" data-sound="floor-tom">Floor Tom</div>
     </div>
+    <button id="fullscreen-btn" aria-label="전체 화면 토글">
+        <svg class="fullscreen-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+        </svg>
+        <svg class="exit-fullscreen-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+        </svg>
+    </button>
 </div>
 
 <script>
-    // Tone.js 오디오 컨텍스트 시작 (사용자 상호작용 시)
+    // Tone.js 오디오 컨텍스트 시작
     let audioStarted = false;
     const startAudio = async () => {
         if (Tone.context.state !== 'running') {
@@ -155,19 +237,23 @@
             console.log('Audio context started');
         }
         audioStarted = true;
-        document.body.removeEventListener('click', startAudio);
-        document.body.removeEventListener('touchstart', startAudio);
+        ['click', 'touchstart'].forEach(evt =>
+            document.body.removeEventListener(evt, startAudio)
+        );
     };
-    document.body.addEventListener('click', startAudio);
-    document.body.addEventListener('touchstart', startAudio);
+    ['click', 'touchstart'].forEach(evt =>
+        document.body.addEventListener(evt, startAudio)
+    );
 
-    // --- 사운드 밸런스 조정 ---
+    // 사운드 밸런스 조정
     const mainVolume = new Tone.Volume(-4).toDestination();
 
-    // 드럼 사운드 정의
+    // 드럼 사운드 정의 (이전과 동일)
     const sounds = {
         'kick': new Tone.MembraneSynth({
-            pitchDecay: 0.04, octaves: 7, oscillator: {type: 'sine'},
+            pitchDecay: 0.04,
+            octaves: 7,
+            oscillator: {type: 'sine'},
             envelope: {attack: 0.001, decay: 0.5, sustain: 0.01, release: 1.4, attackCurve: 'exponential'}
         }).connect(mainVolume),
         'snare': new Tone.NoiseSynth({
@@ -175,16 +261,28 @@
             envelope: {attack: 0.005, decay: 0.2, sustain: 0}
         }).connect(mainVolume),
         'hi-hat': new Tone.MetalSynth({
-            frequency: 200, envelope: {attack: 0.001, decay: 0.1, release: 0.05},
-            harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5
+            frequency: 200,
+            envelope: {attack: 0.001, decay: 0.1, release: 0.05},
+            harmonicity: 5.1,
+            modulationIndex: 32,
+            resonance: 4000,
+            octaves: 1.5
         }).connect(mainVolume),
         'crash': new Tone.MetalSynth({
-            frequency: 300, envelope: {attack: 0.001, decay: 1.5, release: 1},
-            harmonicity: 5.1, modulationIndex: 64, resonance: 3000, octaves: 1.5
+            frequency: 300,
+            envelope: {attack: 0.001, decay: 1.5, release: 1},
+            harmonicity: 5.1,
+            modulationIndex: 64,
+            resonance: 3000,
+            octaves: 1.5
         }).connect(mainVolume),
         'ride': new Tone.MetalSynth({
-            frequency: 400, envelope: {attack: 0.001, decay: 1.0, release: 0.5},
-            harmonicity: 4.1, modulationIndex: 40, resonance: 3500, octaves: 1.2
+            frequency: 400,
+            envelope: {attack: 0.001, decay: 1.0, release: 0.5},
+            harmonicity: 4.1,
+            modulationIndex: 40,
+            resonance: 3500,
+            octaves: 1.2
         }).connect(mainVolume),
         'tom1': new Tone.Synth({
             oscillator: {type: 'sine'},
@@ -194,21 +292,13 @@
             oscillator: {type: 'sine'},
             envelope: {attack: 0.005, decay: 0.45, sustain: 0, release: 0.25}
         }).connect(mainVolume),
-
-        // --- Floor Tom 사운드 변경: MembraneSynth -> Synth ---
         'floor-tom': new Tone.Synth({
-            oscillator: {type: 'sine'}, // Tom 1, 2와 동일한 파형
-            envelope: {
-                attack: 0.005,
-                decay: 0.6,    // Tom 2보다 더 길게 늘림 (낮은 톤의 울림)
-                sustain: 0,
-                release: 0.4   // Tom 2보다 더 길게 늘림
-            }
+            oscillator: {type: 'sine'},
+            envelope: {attack: 0.005, decay: 0.6, sustain: 0, release: 0.4}
         }).connect(mainVolume),
-        // -------------------------------------------------
     };
 
-    // --- 개별 악기 볼륨 미세 조정 (dB 단위) ---
+    // 개별 악기 볼륨 조정 (이전과 동일)
     sounds['kick'].volume.value = 0;
     sounds['snare'].volume.value = +2;
     sounds['hi-hat'].volume.value = 0;
@@ -216,12 +306,12 @@
     sounds['ride'].volume.value = -2;
     sounds['tom1'].volume.value = -2;
     sounds['tom2'].volume.value = -2;
-    sounds['floor-tom'].volume.value = 0; // 플로어 탐 볼륨은 0dB 유지
+    sounds['floor-tom'].volume.value = 0;
 
-    // 각 드럼 패드 요소 가져오기
+    // 드럼 패드 요소 가져오기
     const pads = document.querySelectorAll('.drum-pad');
 
-    // 사운드 트리거 및 시각 효과 함수
+    // 사운드 트리거 및 시각 효과 함수 (이전과 동일)
     const triggerSound = (soundId, element) => {
         const sound = sounds[soundId];
         if (sound) {
@@ -229,14 +319,12 @@
             if (soundId === 'snare' || soundId === 'hi-hat' || soundId === 'crash' || soundId === 'ride') {
                 sound.triggerAttackRelease("8n", now);
             } else {
-                // Floor Tom 도 이제 Synth 이므로 동일하게 피치 지정
-                let pitch = "C1"; // 기본값 (Kick)
+                let pitch = "C1";
                 if (soundId === 'tom1') pitch = "G3";
                 else if (soundId === 'tom2') pitch = "D3";
-                else if (soundId === 'floor-tom') pitch = "C3"; // Floor Tom 피치 (낮은 '도')
+                else if (soundId === 'floor-tom') pitch = "C3";
                 sound.triggerAttackRelease(pitch, "8n", now);
             }
-
             element.classList.add('active');
             setTimeout(() => {
                 element.classList.remove('active');
@@ -246,7 +334,7 @@
         }
     };
 
-    // 각 패드에 이벤트 리스너 추가
+    // 각 패드에 이벤트 리스너 추가 (이전과 동일)
     pads.forEach(pad => {
         const soundId = pad.dataset.sound || pad.id;
         const playSoundHandler = (event) => {
@@ -263,9 +351,45 @@
         pad.addEventListener('touchstart', playSoundHandler, {passive: false});
     });
 
-    // 페이지 로드 완료 시 메시지
+    // --- 전체 화면 기능 (아이콘 토글 추가) ---
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    const docElement = document.documentElement;
+    const fullscreenIcon = fullscreenBtn.querySelector('.fullscreen-icon');
+    const exitFullscreenIcon = fullscreenBtn.querySelector('.exit-fullscreen-icon');
+
+    function updateFullscreenIcons() {
+        if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+            fullscreenIcon.style.display = 'none';
+            exitFullscreenIcon.style.display = 'inline-block';
+        } else {
+            fullscreenIcon.style.display = 'inline-block';
+            exitFullscreenIcon.style.display = 'none';
+        }
+    }
+
+    fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+            if (docElement.requestFullscreen) docElement.requestFullscreen();
+            else if (docElement.webkitRequestFullscreen) docElement.webkitRequestFullscreen();
+            else if (docElement.mozRequestFullScreen) docElement.mozRequestFullScreen();
+            else if (docElement.msRequestFullscreen) docElement.msRequestFullscreen();
+        } else {
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+            else if (document.msExitFullscreen) document.msExitFullscreen();
+        }
+    });
+
+    ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(event =>
+        document.addEventListener(event, updateFullscreenIcons, false)
+    );
+    // -----------------------
+
+    // 페이지 로드 완료 시 메시지 및 초기 아이콘 상태 설정
     window.addEventListener('load', () => {
         console.log("Drum pad ready. Touch or click a pad to start playing.");
+        updateFullscreenIcons(); // 초기 아이콘 상태 설정
     });
 
 </script>
