@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>웹 드럼 패드 (플로어 탐 사운드 조정됨)</title> <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        /* 기본 스타일 */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #333; /* 어두운 배경 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden; /* 스크롤 방지 */
+            overscroll-behavior: none; /* 스크롤 당김 효과 방지 */
+            touch-action: manipulation; /* 더블 탭 확대 방지 */
+        }
+
+        /* 드럼 키트 컨테이너 - 중앙 정렬 역할 */
+        .drum-kit-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 드럼 키트 영역 - 크기 및 기준점 */
+        #drum-kit {
+            position: relative; /* 자식 요소(패드)들의 절대 위치 기준점 */
+            width: 95vmin; /* 화면 크기에 따른 가변 너비 */
+            height: 70vmin; /* 화면 크기에 따른 가변 높이 */
+        }
+
+        /* 드럼 패드 공통 스타일 */
+        .drum-pad {
+            position: absolute; /* #drum-kit 내부에서 절대 위치 */
+            border-radius: 50%; /* 원형 모양 */
+            cursor: pointer;
+            user-select: none; /* 텍스트 선택 방지 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.2); /* 입체감 효과 */
+            transition: transform 0.05s ease-out, box-shadow 0.05s ease-out; /* 애니메이션 효과 */
+            -webkit-tap-highlight-color: transparent; /* 모바일 터치 시 하이라이트 제거 */
+            font-size: 2vmin; /* 화면 크기에 따른 폰트 크기 */
+            box-sizing: border-box; /* 테두리를 포함하여 크기 계산 */
+        }
+
+        /* 드럼 패드 활성화 (터치/클릭) 시 스타일 */
+        .drum-pad.active {
+            transform: scale(0.95); /* 살짝 작아지는 효과 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(0, 0, 0, 0.3); /* 눌리는 효과 */
+        }
+
+        /* 심벌즈 스타일 (노란색/금색 계열) */
+        .cymbal {
+            background: radial-gradient(circle, #fde047 /* 밝은 노랑 */, #eab308 /* 진한 노랑 */);
+            border: 0.8vmin solid #a16207; /* 어두운 금색 테두리 */
+            color: #713f12; /* 어두운 갈색 텍스트 */
+        }
+
+        /* 드럼 헤드 스타일 (흰색/회색 계열) */
+        .drum-head {
+            background: radial-gradient(circle, #f3f4f6 /* 밝은 회색 */, #d1d5db /* 중간 회색 */);
+            border: 1vmin solid #4b5563; /* 어두운 회색 테두리 */
+            color: #1f2937; /* 매우 어두운 회색 텍스트 */
+        }
+
+        /* --- 개별 드럼/심벌즈 위치 및 크기 조정 --- */
+        #crash { top: 0; left: 5%; width: 28vmin; height: 28vmin; }
+        #hi-hat { top: 35%; left: 0; width: 23vmin; height: 23vmin; }
+        #ride { top: 0; right: 5%; width: 33vmin; height: 33vmin; }
+        #snare { bottom: 28%; left: 18%; width: 25vmin; height: 25vmin; }
+        #tom1 { top: 18%; left: 32%; width: 20vmin; height: 20vmin; }
+        #tom2 { top: 18%; right: 32%; width: 21vmin; height: 21vmin; }
+        #kick { bottom: 0; left: 50%; transform: translateX(-50%); width: 30vmin; height: 30vmin; }
+        #floor-tom { bottom: 20%; right: 12%; width: 27vmin; height: 27vmin; }
+
+    </style>
+</head>
+<body>
+<div class="drum-kit-container">
+    <div id="drum-kit">
+        <div id="crash" class="drum-pad cymbal" data-sound="crash">Crash</div>
+        <div id="hi-hat" class="drum-pad cymbal" data-sound="hi-hat">Hi-Hat</div>
+        <div id="ride" class="drum-pad cymbal" data-sound="ride">Ride</div>
+        <div id="snare" class="drum-pad drum-head" data-sound="snare">Snare</div>
+        <div id="tom1" class="drum-pad drum-head" data-sound="tom1">Tom 1</div>
+        <div id="tom2" class="drum-pad drum-head" data-sound="tom2">Tom 2</div>
+        <div id="kick" class="drum-pad drum-head" data-sound="kick">Kick</div>
+        <div id="floor-tom" class="drum-pad drum-head" data-sound="floor-tom">Floor Tom</div>
+    </div>
+</div>
+
+<script>
+    // Tone.js 오디오 컨텍스트 시작 (사용자 상호작용 시)
+    let audioStarted = false;
+    const startAudio = async () => {
+        if (Tone.context.state !== 'running') {
+            await Tone.start();
+            console.log('Audio context started');
+        }
+        audioStarted = true;
+        document.body.removeEventListener('click', startAudio);
+        document.body.removeEventListener('touchstart', startAudio);
+    };
+    document.body.addEventListener('click', startAudio);
+    document.body.addEventListener('touchstart', startAudio);
+
+    // --- 사운드 밸런스 조정 ---
+    const mainVolume = new Tone.Volume(-4).toDestination();
+
+    // 드럼 사운드 정의
+    const sounds = {
+        'kick': new Tone.MembraneSynth({
+            pitchDecay: 0.04, octaves: 7, oscillator: { type: 'sine' },
+            envelope: { attack: 0.001, decay: 0.5, sustain: 0.01, release: 1.4, attackCurve: 'exponential' }
+        }).connect(mainVolume),
+        'snare': new Tone.NoiseSynth({
+            noise: { type: 'white' },
+            envelope: { attack: 0.005, decay: 0.2, sustain: 0 }
+        }).connect(mainVolume),
+        'hi-hat': new Tone.MetalSynth({
+            frequency: 200, envelope: { attack: 0.001, decay: 0.1, release: 0.05 },
+            harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5
+        }).connect(mainVolume),
+        'crash': new Tone.MetalSynth({
+            frequency: 300, envelope: { attack: 0.001, decay: 1.5, release: 1 },
+            harmonicity: 5.1, modulationIndex: 64, resonance: 3000, octaves: 1.5
+        }).connect(mainVolume),
+        'ride': new Tone.MetalSynth({
+            frequency: 400, envelope: { attack: 0.001, decay: 1.0, release: 0.5 },
+            harmonicity: 4.1, modulationIndex: 40, resonance: 3500, octaves: 1.2
+        }).connect(mainVolume),
+        'tom1': new Tone.Synth({
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.005, decay: 0.4, sustain: 0, release: 0.2 }
+        }).connect(mainVolume),
+        'tom2': new Tone.Synth({
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.005, decay: 0.45, sustain: 0, release: 0.25 }
+        }).connect(mainVolume),
+
+        // --- Floor Tom 사운드 변경: MembraneSynth -> Synth ---
+        'floor-tom': new Tone.Synth({
+            oscillator: { type: 'sine' }, // Tom 1, 2와 동일한 파형
+            envelope: {
+                attack: 0.005,
+                decay: 0.6,    // Tom 2보다 더 길게 늘림 (낮은 톤의 울림)
+                sustain: 0,
+                release: 0.4   // Tom 2보다 더 길게 늘림
+            }
+        }).connect(mainVolume),
+        // -------------------------------------------------
+    };
+
+    // --- 개별 악기 볼륨 미세 조정 (dB 단위) ---
+    sounds['kick'].volume.value = 0;
+    sounds['snare'].volume.value = +2;
+    sounds['hi-hat'].volume.value = 0;
+    sounds['crash'].volume.value = 0;
+    sounds['ride'].volume.value = -2;
+    sounds['tom1'].volume.value = -2;
+    sounds['tom2'].volume.value = -2;
+    sounds['floor-tom'].volume.value = 0; // 플로어 탐 볼륨은 0dB 유지
+
+    // 각 드럼 패드 요소 가져오기
+    const pads = document.querySelectorAll('.drum-pad');
+
+    // 사운드 트리거 및 시각 효과 함수
+    const triggerSound = (soundId, element) => {
+        const sound = sounds[soundId];
+        if (sound) {
+            const now = Tone.now();
+            if (soundId === 'snare' || soundId === 'hi-hat' || soundId === 'crash' || soundId === 'ride') {
+                sound.triggerAttackRelease("8n", now);
+            } else {
+                // Floor Tom 도 이제 Synth 이므로 동일하게 피치 지정
+                let pitch = "C1"; // 기본값 (Kick)
+                if (soundId === 'tom1') pitch = "G3";
+                else if (soundId === 'tom2') pitch = "D3";
+                else if (soundId === 'floor-tom') pitch = "C3"; // Floor Tom 피치 (낮은 '도')
+                sound.triggerAttackRelease(pitch, "8n", now);
+            }
+
+            element.classList.add('active');
+            setTimeout(() => {
+                element.classList.remove('active');
+            }, 100);
+        } else {
+            console.warn(`Sound definition not found for ID: ${soundId}`);
+        }
+    };
+
+    // 각 패드에 이벤트 리스너 추가
+    pads.forEach(pad => {
+        const soundId = pad.dataset.sound || pad.id;
+        const playSoundHandler = (event) => {
+            event.preventDefault();
+            if (!audioStarted) {
+                startAudio().then(() => {
+                    triggerSound(soundId, pad);
+                });
+            } else {
+                triggerSound(soundId, pad);
+            }
+        };
+        pad.addEventListener('mousedown', playSoundHandler);
+        pad.addEventListener('touchstart', playSoundHandler, { passive: false });
+    });
+
+    // 페이지 로드 완료 시 메시지
+    window.addEventListener('load', () => {
+        console.log("Drum pad ready. Touch or click a pad to start playing.");
+    });
+
+</script>
+</body>
+</html>
