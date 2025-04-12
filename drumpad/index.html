@@ -4,51 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>드럼 패드</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥁</text></svg>">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         /* 기본 스타일 */
         html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            overscroll-behavior: none;
+            height: 100%; margin: 0; padding: 0; font-family: 'Inter', sans-serif;
+            background-color: #333; display: flex; justify-content: center;
+            align-items: center; overflow: hidden; overscroll-behavior: none;
             touch-action: manipulation;
         }
-
         .drum-kit-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-            position: relative;
+            display: flex; justify-content: center; align-items: center;
+            width: 100%; height: 100%; position: relative;
         }
-
         #drum-kit {
             position: relative;
             /* 단일 레이아웃 컨테이너 크기 (vmin 기준) */
-            width: 100vmin;
-            height: 75vmin;
+            width: 95vmin;
+            height: 70vmin;
             max-width: 100%; /* 화면 크기 초과 방지 */
             max-height: 100%;
-            margin-top: 10vmin; /* 여백 추가 */
+            /* margin-top 제거됨 (사용자 코드 기준) */
         }
 
         .drum-pad {
-            position: absolute;
-            border-radius: 50%;
-            cursor: pointer;
-            user-select: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
+            position: absolute; border-radius: 50%; cursor: pointer; user-select: none;
+            display: flex; justify-content: center; align-items: center; font-weight: bold;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.2);
             transition: transform 0.05s ease-out, box-shadow 0.05s ease-out;
             -webkit-tap-highlight-color: transparent;
@@ -56,19 +38,16 @@
             /* 단일 레이아웃 폰트 크기 (vmin 기준) */
             font-size: 2vmin;
         }
-
         .drum-pad.active {
             transform: scale(0.95);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(0, 0, 0, 0.3);
         }
-
         .cymbal {
             background: radial-gradient(circle, #fde047, #eab308);
             /* 단일 레이아웃 테두리 두께 (vmin 기준) */
             border: 0.8vmin solid #a16207;
             color: #713f12;
         }
-
         .drum-head {
             background: radial-gradient(circle, #f3f4f6, #d1d5db);
             /* 단일 레이아웃 테두리 두께 (vmin 기준) */
@@ -78,131 +57,40 @@
 
         /* --- 단일 레이아웃 드럼 패드 위치 (%) 및 크기 (vmin 사용 -> 원형 보장) --- */
         /* 위치 값 (%) */
-        #crash {
-            top: 0;
-            left: 5%;
-        }
-
-        #hi-hat {
-            top: 35%;
-            left: 0;
-        }
-
-        #ride {
-            top: 0;
-            right: 5%;
-        }
-
-        #snare {
-            bottom: 28%;
-            left: 18%;
-        }
-
-        #tom1 {
-            top: 18%;
-            left: 32%;
-        }
-
-        #tom2 {
-            top: 18%;
-            right: 32%;
-        }
-
-        #kick {
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        #floor-tom {
-            bottom: 20%;
-            right: 12%;
-        }
-
+        #crash { top: 0; left: 5%; }
+        #hi-hat { top: 35%; left: 0; }
+        #ride { top: 0; right: 5%; }
+        #snare { bottom: 28%; left: 18%; }
+        #tom1 { top: 18%; left: 32%; }
+        #tom2 { top: 18%; right: 32%; }
+        #kick { bottom: 0; left: 50%; transform: translateX(-50%); }
+        #floor-tom { bottom: 20%; right: 12%; }
         /* 크기 값 (vmin) */
-        #crash {
-            width: 28vmin;
-            height: 28vmin;
-        }
-
-        #hi-hat {
-            width: 23vmin;
-            height: 23vmin;
-        }
-
-        #ride {
-            width: 33vmin;
-            height: 33vmin;
-        }
-
-        #snare {
-            width: 25vmin;
-            height: 25vmin;
-        }
-
-        #tom1 {
-            width: 20vmin;
-            height: 20vmin;
-        }
-
-        #tom2 {
-            width: 21vmin;
-            height: 21vmin;
-        }
-
-        #kick {
-            width: 30vmin;
-            height: 30vmin;
-        }
-
-        #floor-tom {
-            width: 27vmin;
-            height: 27vmin;
-        }
-
+        #crash { width: 28vmin; height: 28vmin; }
+        #hi-hat { width: 23vmin; height: 23vmin; }
+        #ride { width: 33vmin; height: 33vmin; }
+        #snare { width: 25vmin; height: 25vmin; }
+        #tom1 { width: 20vmin; height: 20vmin; }
+        #tom2 { width: 21vmin; height: 21vmin; }
+        #kick { width: 30vmin; height: 30vmin; }
+        #floor-tom { width: 27vmin; height: 27vmin; }
         /* ---------------------------------------------------------------------- */
 
         /* 미디어 쿼리 제거됨 */
 
         /* --- 전체 화면 버튼 스타일 개선 --- */
         #fullscreen-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 44px;
-            height: 44px;
-            background: radial-gradient(circle, #6b7280, #4b5563);
-            border: 2px solid #374151;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 100;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0;
+            position: absolute; top: 15px; right: 15px; width: 44px; height: 44px;
+            background: radial-gradient(circle, #6b7280, #4b5563); border: 2px solid #374151;
+            border-radius: 50%; cursor: pointer; z-index: 100;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4); display: flex;
+            justify-content: center; align-items: center; padding: 0;
             transition: background 0.2s ease, transform 0.1s ease;
         }
-
-        #fullscreen-btn:hover {
-            background: radial-gradient(circle, #808892, #5c6672);
-        }
-
-        #fullscreen-btn:active {
-            transform: scale(0.95);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
-
-        #fullscreen-btn svg {
-            width: 20px;
-            height: 20px;
-            fill: #f3f4f6;
-        }
-
-        .exit-fullscreen-icon {
-            display: none;
-        }
-
+        #fullscreen-btn:hover { background: radial-gradient(circle, #808892, #5c6672); }
+        #fullscreen-btn:active { transform: scale(0.95); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }
+        #fullscreen-btn svg { width: 20px; height: 20px; fill: #f3f4f6; }
+        .exit-fullscreen-icon { display: none; }
         /* -------------------------- */
 
     </style>
@@ -220,12 +108,8 @@
         <div id="floor-tom" class="drum-pad drum-head" data-sound="floor-tom">Floor Tom</div>
     </div>
     <button id="fullscreen-btn" aria-label="전체 화면 토글">
-        <svg class="fullscreen-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-        </svg>
-        <svg class="exit-fullscreen-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
-        </svg>
+        <svg class="fullscreen-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+        <svg class="exit-fullscreen-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
     </button>
 </div>
 
@@ -233,70 +117,36 @@
     // Tone.js 오디오 컨텍스트 시작
     let audioStarted = false;
     const startAudio = async () => {
+        // Tone.js 컨텍스트 상태 확인 및 시작
         if (Tone.context.state !== 'running') {
             await Tone.start();
             console.log('Audio context started');
         }
-        audioStarted = true;
+        audioStarted = true; // 오디오 시작됨 플래그 설정
+        // 오디오 시작 후에는 이벤트 리스너 제거 (한 번만 실행)
         ['click', 'touchstart'].forEach(evt =>
             document.body.removeEventListener(evt, startAudio)
         );
     };
+    // 페이지 로드 후 첫 클릭/터치 시 오디오 컨텍스트 시작
     ['click', 'touchstart'].forEach(evt =>
         document.body.addEventListener(evt, startAudio)
     );
+
 
     // 사운드 밸런스 조정
     const mainVolume = new Tone.Volume(-4).toDestination();
 
     // 드럼 사운드 정의 (이전과 동일)
     const sounds = {
-        'kick': new Tone.MembraneSynth({
-            pitchDecay: 0.04,
-            octaves: 7,
-            oscillator: {type: 'sine'},
-            envelope: {attack: 0.001, decay: 0.5, sustain: 0.01, release: 1.4, attackCurve: 'exponential'}
-        }).connect(mainVolume),
-        'snare': new Tone.NoiseSynth({
-            noise: {type: 'white'},
-            envelope: {attack: 0.005, decay: 0.2, sustain: 0}
-        }).connect(mainVolume),
-        'hi-hat': new Tone.MetalSynth({
-            frequency: 200,
-            envelope: {attack: 0.001, decay: 0.1, release: 0.05},
-            harmonicity: 5.1,
-            modulationIndex: 32,
-            resonance: 4000,
-            octaves: 1.5
-        }).connect(mainVolume),
-        'crash': new Tone.MetalSynth({
-            frequency: 300,
-            envelope: {attack: 0.001, decay: 1.5, release: 1},
-            harmonicity: 5.1,
-            modulationIndex: 64,
-            resonance: 3000,
-            octaves: 1.5
-        }).connect(mainVolume),
-        'ride': new Tone.MetalSynth({
-            frequency: 400,
-            envelope: {attack: 0.001, decay: 1.0, release: 0.5},
-            harmonicity: 4.1,
-            modulationIndex: 40,
-            resonance: 3500,
-            octaves: 1.2
-        }).connect(mainVolume),
-        'tom1': new Tone.Synth({
-            oscillator: {type: 'sine'},
-            envelope: {attack: 0.005, decay: 0.4, sustain: 0, release: 0.2}
-        }).connect(mainVolume),
-        'tom2': new Tone.Synth({
-            oscillator: {type: 'sine'},
-            envelope: {attack: 0.005, decay: 0.45, sustain: 0, release: 0.25}
-        }).connect(mainVolume),
-        'floor-tom': new Tone.Synth({
-            oscillator: {type: 'sine'},
-            envelope: {attack: 0.005, decay: 0.6, sustain: 0, release: 0.4}
-        }).connect(mainVolume),
+        'kick': new Tone.MembraneSynth({ pitchDecay: 0.04, octaves: 7, oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: 0.5, sustain: 0.01, release: 1.4, attackCurve: 'exponential' } }).connect(mainVolume),
+        'snare': new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.005, decay: 0.2, sustain: 0 } }).connect(mainVolume),
+        'hi-hat': new Tone.MetalSynth({ frequency: 200, envelope: { attack: 0.001, decay: 0.1, release: 0.05 }, harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5 }).connect(mainVolume),
+        'crash': new Tone.MetalSynth({ frequency: 300, envelope: { attack: 0.001, decay: 1.5, release: 1 }, harmonicity: 5.1, modulationIndex: 64, resonance: 3000, octaves: 1.5 }).connect(mainVolume),
+        'ride': new Tone.MetalSynth({ frequency: 400, envelope: { attack: 0.001, decay: 1.0, release: 0.5 }, harmonicity: 4.1, modulationIndex: 40, resonance: 3500, octaves: 1.2 }).connect(mainVolume),
+        'tom1': new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.4, sustain: 0, release: 0.2 } }).connect(mainVolume),
+        'tom2': new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.45, sustain: 0, release: 0.25 } }).connect(mainVolume),
+        'floor-tom': new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.6, sustain: 0, release: 0.4 } }).connect(mainVolume),
     };
 
     // 개별 악기 볼륨 조정 (이전과 동일)
@@ -349,7 +199,7 @@
             }
         };
         pad.addEventListener('mousedown', playSoundHandler);
-        pad.addEventListener('touchstart', playSoundHandler, {passive: false});
+        pad.addEventListener('touchstart', playSoundHandler, { passive: false });
     });
 
     // --- 전체 화면 기능 (아이콘 토글 추가) ---
@@ -382,7 +232,7 @@
         }
     });
 
-    ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(event =>
+    ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach( event =>
         document.addEventListener(event, updateFullscreenIcons, false)
     );
     // -----------------------
